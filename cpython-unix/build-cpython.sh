@@ -161,6 +161,31 @@ cat Makefile.extra
 
 pushd Python-${PYTHON_VERSION}
 
+# backport https://bugs.python.org/issue45433
+patch -p1 <<"EOF"
+diff --git a/configure b/configure
+index 15c7c54b09536..70f28b0c7064e 100755
+--- a/configure
++++ b/configure
+@@ -13227,6 +13227,8 @@ done
+ 
+ # We search for both crypt and crypt_r as one or the other may be defined
+ # This gets us our -lcrypt in LIBS when required on the target platform.
++# Save/restore LIBS to avoid linking libpython with libcrypt.
++LIBS_SAVE=$LIBS
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing crypt" >&5
+ $as_echo_n "checking for library containing crypt... " >&6; }
+ if ${ac_cv_search_crypt+:} false; then :
+@@ -13368,6 +13370,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ 
+ fi
+ 
++LIBS=$LIBS_SAVE
+ 
+ for ac_func in clock_gettime
+ do :
+EOF
+
 # configure assumes cross compiling when host != target and doesn't provide a way to
 # override. Our target triple normalization may lead configure into thinking we
 # aren't cross-compiling when we are. So force a static "yes" value when our
